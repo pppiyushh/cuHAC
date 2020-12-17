@@ -5,9 +5,9 @@
 #include <cudpp/cudpp.h>
 
 const int n = 5;
-
 const int d = 2;
 
+//function for calculating distance between two points
 __global__ void calculate_distances(float* d_vectors, float* d_distance) {
   int i = blockIdx.x*blockDim.x+threadIdx.x;
   int j = blockIdx.y*blockDim.y+threadIdx.y;
@@ -22,7 +22,7 @@ __global__ void calculate_distances(float* d_vectors, float* d_distance) {
     }
   }
 }
-
+//function for merging the most closet point to the cluster
 __global__ void merge_clusters(float* d_distance, int* d_dendrogram, int* d_merged_clusters, int step) {
   int x = blockIdx.x*blockDim.x+threadIdx.x;
   int y = blockIdx.y*blockDim.y+threadIdx.y;
@@ -51,6 +51,7 @@ __global__ void merge_clusters(float* d_distance, int* d_dendrogram, int* d_merg
   }
 }
 
+//function which updates the matrix the distances after formation of the clusters 
 __global__ void update_distances(float* d_distance, int* d_dendrogram, int* d_merged_clusters, int step) {
   int i = blockIdx.x*blockDim.x+threadIdx.x;
   int j = blockIdx.y*blockDim.y+threadIdx.y;
@@ -61,18 +62,14 @@ __global__ void update_distances(float* d_distance, int* d_dendrogram, int* d_me
     if (!d_merged_clusters[i] && !d_merged_clusters[j]) {
       int candidate_index = INT_MAX;
 
-      if (d_dendrogram[step] == i)
-        candidate_index = d_dendrogram[step+(n-1)] + j*n;
-      else if (d_dendrogram[step] == j)
-        candidate_index = d_dendrogram[step+(n-1)] + i*n;
-      
-      if (candidate_index != INT_MAX && d_distance[candidate_index] < d_distance[index])
-        d_distance[index] = d_distance[candidate_index];
-      
+      if (d_dendrogram[step] == i) candidate_index = d_dendrogram[step+(n-1)] + j*n;
+      else if (d_dendrogram[step] == j) candidate_index = d_dendrogram[step+(n-1)] + i*n;
+      if (candidate_index != INT_MAX && d_distance[candidate_index] < d_distance[index]) d_distance[index] = d_distance[candidate_index];
     }
   }
 }
 
+//function for printing the numerical representation of the dendrogram
 void print_step_results(int step, float* h_distance, int* h_dendrogram, int* h_merged_clusters) {
   printf("\n\n\n");    
   printf("Krok %i", step+1);
@@ -110,13 +107,11 @@ void print_step_results(int step, float* h_distance, int* h_dendrogram, int* h_m
   printf("\n\n");
 }
 
-
 int main(int argc, char** argv) {
-  if (cutCheckCmdLineFlag(argc, (const char**)argv, "device"))
-    cutilDeviceInit(argc, argv);
-  else
-    cudaSetDevice(cutGetMaxGflopsDeviceId());
+  if (cutCheckCmdLineFlag(argc, (const char**)argv, "device")) cutilDeviceInit(argc, argv);
+  else cudaSetDevice(cutGetMaxGflopsDeviceId());
 
+  //initializing
   float* h_vectors=(float*)malloc(sizeof(float)* n*d);
   float* h_distance=(float*)malloc(sizeof(float)* n*n);
   int* h_dendrogram=(int*)malloc(sizeof(int)* (n-1)*2);
@@ -153,13 +148,8 @@ int main(int argc, char** argv) {
   h_vectors[4*d] = 1;
   h_vectors[4*d+1] = 1;
 
-  for (int i=0;i<(n-1)*2;i++) {
-    h_dendrogram[i] = 0;
-  }
-  
-  for (int i=0;i<n;i++) {
-    h_merged_clusters[i] = 0;
-  }
+  for (int i=0;i<(n-1)*2;i++) h_dendrogram[i] = 0;
+  for (int i=0;i<n;i++) h_merged_clusters[i] = 0;
   
   printf("Punkty wejściowe:");
   for (int i=0;i<n*d;i++) {
