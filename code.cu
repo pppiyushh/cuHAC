@@ -111,7 +111,7 @@ int main(int argc, char** argv) {
   if (cutCheckCmdLineFlag(argc, (const char**)argv, "device")) cutilDeviceInit(argc, argv);
   else cudaSetDevice(cutGetMaxGflopsDeviceId());
 
-  //initializing
+  //declearation
   float* h_vectors=(float*)malloc(sizeof(float)* n*d);
   float* h_distance=(float*)malloc(sizeof(float)* n*n);
   int* h_dendrogram=(int*)malloc(sizeof(int)* (n-1)*2);
@@ -132,7 +132,13 @@ int main(int argc, char** argv) {
   h_vectors[0*d] = -5;
   h_vectors[0*d+1] = 4;
   
-  // P1
+  //we have to take input here
+  //This one
+  //commenting in multipleline to get a better view
+  //Yaay
+  
+  
+  
   h_vectors[1*d] = 4;
   h_vectors[1*d+1] = -3;
   
