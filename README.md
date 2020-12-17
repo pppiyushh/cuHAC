@@ -1,2 +1,2 @@
 # cuHAC
-This repository has the details about Hierarchical Agglomerative Clustering.
+This repository has the details about Hierarchical Agglomerative Clustering using CUDA
